@@ -164,6 +164,10 @@ export async function searchDataProducts(options: PackageSearchOptions) {
     filters.push(`domains.displayName.keyword:(${options.orgs.join(" OR ")})`);
   }
 
+  if (options?.resFormat?.length) {
+    filters.push(`assets.type:(${options.resFormat.join(" OR ")})`);
+  }
+
   filters.push(`entityType.keyword:dataproduct`);
   filters.push(`deleted:false`);
 

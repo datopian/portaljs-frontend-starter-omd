@@ -18,6 +18,10 @@ export default async function handler(
         options.tags = [options.tags];
       }
 
+      if (typeof options.resFormat === "string") {
+        options.resFormat = [options.resFormat];
+      }
+
       const results = await searchDataProducts(options);
       res.status(200).json(results);
     } catch (e) {

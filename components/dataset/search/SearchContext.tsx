@@ -57,16 +57,11 @@ export const SearchStateProvider = ({
     type: (query?.type as string) ?? "dataset",
   };
 
-  const packagesOptions = {
-    ...options,
-    offset: options.type != "dataset" ? 0 : options.offset,
-    type: "dataset",
-  };
   const {
     data: packageSearchResults,
     isValidating: isLoadingPackageSearchResults,
   } = useSWR(
-    ["/api/datasets/search", packagesOptions],
+    ["/api/datasets/search", options],
     async (api, options) => {
       const searchParams = new URLSearchParams();
       searchParams.set("limit", String(options.limit));
@@ -77,6 +72,9 @@ export const SearchStateProvider = ({
       for (let tag of options.tags) {
         searchParams.append("tags", tag);
       }
+      for (let format of options.resFormat) {
+        searchParams.append("resFormat", format);
+      }
       searchParams.set("query", options.query);
       searchParams.set("sort", options.sort);
       const res = await fetch(`${api}?${searchParams.toString()}`);
@@ -85,7 +83,6 @@ export const SearchStateProvider = ({
     },
     { use: [laggy] }
   );
-
 
   const searchResults = packageSearchResults;
   const isLoading = isLoadingPackageSearchResults;
