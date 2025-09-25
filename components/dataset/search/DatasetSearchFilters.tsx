@@ -7,7 +7,6 @@ import {
   PackageSearchOptions,
 } from "@/schemas/dataset.interface";
 import {
-  ChartBarIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   CircleStackIcon,
@@ -18,13 +17,8 @@ export default function DatasetSearchFilters() {
   const [showFilters, setShowFilters] = useState(true);
   const [seeMoreOrgs, setSeeMoreOrgs] = useState(false);
   const [seeMoreGroups, setSeeMoreGroups] = useState(false);
-  const {
-    searchFacets,
-    options,
-    setOptions,
-    packageSearchResults,
-    visualizationsSearchResults,
-  } = useSearchState();
+  const { searchFacets, options, setOptions, packageSearchResults } =
+    useSearchState();
   const maxPerView = 6;
 
   return (
@@ -49,12 +43,6 @@ export default function DatasetSearchFilters() {
               Icon={CircleStackIcon}
               type="dataset"
               count={packageSearchResults?.count}
-            />
-            <DatasetTypeOption
-              title="Visualizations"
-              Icon={ChartBarIcon}
-              type="visualization"
-              count={visualizationsSearchResults?.count}
             />
           </div>
         </FacetCard>
@@ -230,22 +218,13 @@ function DatasetTypeOption({
   type: string;
   count?: number;
 }) {
-  const {
-    options,
-    setOptions,
-    packageSearchResults,
-    visualizationsSearchResults,
-  } = useSearchState();
+  const { options, setOptions, packageSearchResults } = useSearchState();
   const isActive = options.type === type;
 
   return (
     <button
       onClick={() => {
-        const hasResults = !!(
-          type === "visualization"
-            ? visualizationsSearchResults
-            : packageSearchResults
-        )?.results?.length;
+        const hasResults = !!packageSearchResults?.results?.length;
         const newOptions: Partial<PackageSearchOptions> = { type, offset: 0 };
         if (!hasResults) {
           Object.assign(newOptions, {
@@ -253,7 +232,7 @@ function DatasetTypeOption({
             tags: [],
             groups: [],
             orgs: [],
-            query: ""
+            query: "",
           });
         }
         setOptions(newOptions);

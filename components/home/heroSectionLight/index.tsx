@@ -1,7 +1,11 @@
 import SearchForm from "./SearchForm";
 
-
-import { RiBarChartLine, RiFileCopy2Line, RiFunctionLine, RiTeamLine } from "react-icons/ri";
+import {
+  RiBarChartLine,
+  RiFileCopy2Line,
+  RiFunctionLine,
+  RiTeamLine,
+} from "react-icons/ri";
 import { Stat } from "../heroSection/Stats";
 
 export default function HeroSectionLight({
@@ -11,7 +15,6 @@ export default function HeroSectionLight({
     orgCount: number;
     groupCount: number;
     datasetCount: number;
-    visualizationCount: number;
   };
 }) {
   return (
@@ -40,12 +43,6 @@ export default function HeroSectionLight({
               count={stats.datasetCount}
               label="Dataset"
             />
-            {!!stats.visualizationCount && <Stat
-              Icon={RiBarChartLine}
-              href="/search?type=visualization"
-              count={stats.visualizationCount}
-              label="Visualization"
-            />}
             <Stat
               Icon={RiFunctionLine}
               href="/groups"

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {  Resource, Tag } from "@portaljs/ckan";
+import { Resource, Tag } from "@portaljs/ckan";
 import { ArrowDownTrayIcon } from "@heroicons/react/20/solid";
 import { getTimeAgo } from "@/lib/utils";
 import { Dataset } from "@/schemas/dataset.interface";
@@ -24,17 +24,6 @@ export default function DatasetInfo({
   return (
     <div className="flex flex-col">
       <div className="flex flex-col gap-y-3">
-        {dataset.type === "visualization" && !!dataset.external_url && (
-          <a
-            href={dataset.external_url}
-            className={`font-medium flex items-center gap-1 text-accent`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <RiExternalLinkLine className="w-5 h-5" />
-            Access Visualization
-          </a>
-        )}
         {!!dataset.resources.length && (
           <span className="font-medium text-gray-500 inline">
             <svg

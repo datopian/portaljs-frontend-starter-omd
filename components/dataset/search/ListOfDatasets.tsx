@@ -25,8 +25,7 @@ function ListItems() {
       <div className="flex justify-between flex-col md:flex-row md:items-center flex-wrap gap-3">
         <div className="flex gap-2">
           <h2 className="text-[23px] leading-[28px] capitalize font-bold  ">
-            {searchResults?.count}{" "}
-            {options.type === "visualization" ? "Visualizations" : "Datasets"}
+            {searchResults?.count} Datasets
           </h2>
         </div>
         <div className="flex gap-2 cursor-pointer">
@@ -166,14 +165,14 @@ function FilterBadges() {
             />
           ))}
 
-        {(!!activeFiltersCount) && (
+        {!!activeFiltersCount && (
           <span
             onClick={() => {
               setOptions({
                 resFormat: [],
                 groups: [],
                 orgs: [],
-                tags: []
+                tags: [],
               });
             }}
             className="inline-flex h-fit w-fit cursor-pointer ml-auto items-center gap-x-0.5 rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-gray-500/10"
