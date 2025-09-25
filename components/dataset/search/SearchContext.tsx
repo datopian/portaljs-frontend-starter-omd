@@ -1,4 +1,3 @@
-import { searchDatasets } from "@/lib/queries/dataset";
 import { PackageSearchOptions } from "@/schemas/dataset.interface";
 import { useRouter } from "next/router";
 import { createContext, useContext } from "react";
@@ -13,9 +12,6 @@ interface SearchStateContext {
   setOptions: setQueryParamFn<Partial<PackageSearchOptions>>;
   packageSearchResults: any;
   isLoadingPackageSearchResults: boolean;
-  visualizationsSearchResults: any;
-  isLoadingVisualizations: boolean;
-  visualizationsSearchFacets: any;
   searchResults: any;
   searchFacets: any;
   isLoading: boolean;
@@ -70,47 +66,32 @@ export const SearchStateProvider = ({
     data: packageSearchResults,
     isValidating: isLoadingPackageSearchResults,
   } = useSWR(
-    ["package_search", packagesOptions],
+    ["/api/datasets/search", packagesOptions],
     async (api, options) => {
-      return searchDatasets(options);
+      const searchParams = new URLSearchParams();
+      searchParams.set("limit", String(options.limit));
+      searchParams.set("offset", String(options.offset));
+      for (let org of options.orgs) {
+        searchParams.append("orgs", org);
+      }
+      for (let tag of options.tags) {
+        searchParams.append("tags", tag);
+      }
+      searchParams.set("query", options.query);
+      searchParams.set("sort", options.sort);
+      const res = await fetch(`${api}?${searchParams.toString()}`);
+      const data = await res.json();
+      return data;
     },
     { use: [laggy] }
   );
 
-  const visualizationsOptions = {
-    ...options,
-    resFormat: [],
-    offset: options.type != "visualization" ? 0 : options.offset,
-    type: "visualization",
-  };
-  const {
-    data: visualizationsSearchResults,
-    isValidating: isLoadingVisualizations,
-  } = useSWR(
-    ["visualization_package_search", visualizationsOptions],
-    async (api, options) => {
-      return searchDatasets(options);
-    },
-    { use: [laggy] }
-  );
 
-  const searchResults =
-    options.type === "visualization"
-      ? visualizationsSearchResults
-      : packageSearchResults;
-  const isLoading =
-    options.type === "visualization"
-      ? isLoadingVisualizations
-      : isLoadingPackageSearchResults;
+  const searchResults = packageSearchResults;
+  const isLoading = isLoadingPackageSearchResults;
 
   const packageSearchFacets = packageSearchResults?.search_facets ?? {};
-  const visualizationsSearchFacets =
-    visualizationsSearchResults?.search_facets ?? {};
-  const searchFacets =
-    options.type === "visualization"
-      ? visualizationsSearchFacets
-      : packageSearchFacets;
-
+  const searchFacets = packageSearchFacets;
 
   const value: SearchStateContext = {
     options,
@@ -118,9 +99,6 @@ export const SearchStateProvider = ({
     packageSearchFacets: packageSearchFacets,
     packageSearchResults,
     isLoadingPackageSearchResults,
-    visualizationsSearchResults,
-    isLoadingVisualizations,
-    visualizationsSearchFacets,
     searchResults,
     searchFacets,
     isLoading,

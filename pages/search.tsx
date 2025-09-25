@@ -4,7 +4,7 @@ import Layout from "@/components/_shared/Layout";
 import DatasetSearchForm from "@/components/dataset/search/DatasetSearchForm";
 import DatasetSearchFilters from "@/components/dataset/search/DatasetSearchFilters";
 import ListOfDatasets from "@/components/dataset/search/ListOfDatasets";
-import { searchDatasets } from "@/lib/queries/dataset";
+import { searchDataProducts, searchDatasets } from "@/lib/queries/dataset";
 import HeroSection from "@/components/_shared/HeroSection";
 import { useTheme } from "@/components/theme/theme-provider";
 import {
@@ -25,7 +25,8 @@ export async function getServerSideProps() {
     resFormat: [],
   };
 
-  const search_result = await searchDatasets(initialRequestOption);
+  // const search_result = await searchDatasets(initialRequestOption);
+  const search_result = await searchDataProducts(initialRequestOption);
 
   return {
     props: {

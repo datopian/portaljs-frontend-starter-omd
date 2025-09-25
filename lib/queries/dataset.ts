@@ -4,7 +4,11 @@ import {
   privateToPublicOrgName,
   publicToPrivateDatasetName,
 } from "./utils";
-import { Dataset, PackageSearchOptions } from "@/schemas/dataset.interface";
+import {
+  Dataset,
+  PackageFacetOptions,
+  PackageSearchOptions,
+} from "@/schemas/dataset.interface";
 import CkanRequest, { CkanResponse } from "@portaljs/ckan-api-client-js";
 
 const DMS = process.env.NEXT_PUBLIC_DMS;
@@ -116,3 +120,139 @@ export const getDataset = async ({ name }: { name: string }) => {
     },
   };
 };
+
+export async function searchDataProducts(options: PackageSearchOptions) {
+  const queryParams: string[] = [];
+
+  if (options?.offset) queryParams.push(`from=${options.offset}`);
+  if (options?.limit !== undefined) queryParams.push(`size=${options.limit}`);
+
+  if (options?.sort) {
+    const sortMap = {
+      "score desc": {
+        sort_field: "_score",
+        sort_order: "desc",
+      },
+      "title_string asc": {
+        sort_field: "displayName.keyword",
+        sort_order: "asc",
+      },
+      "title_string desc": {
+        sort_field: "displayName.keyword",
+        sort_order: "desc",
+      },
+      "metadata_modified desc": {
+        sort_field: "updatedAt",
+        sort_order: "desc",
+      },
+    };
+
+    const sort = sortMap[options.sort];
+
+    queryParams.push(`sort_field=${sort.sort_field}`);
+    queryParams.push(`sort_order=${sort.sort_order}`);
+  }
+
+  // Build query filter if needed
+  const filters: string[] = [];
+
+  if (options?.tags?.length) {
+    filters.push(`tags.name.keyword:(${options.tags.join(" OR ")})`);
+  }
+
+  if (options?.orgs?.length) {
+    filters.push(`domains.displayName.keyword:(${options.orgs.join(" OR ")})`);
+  }
+
+  filters.push(`entityType.keyword:dataproduct`);
+  filters.push(`deleted:false`);
+
+  if (options.query) {
+    filters.push(`"${options.query.replace(/\//g, "")}"`);
+  }
+
+  const queryString = filters.join(" AND ");
+  queryParams.push(`q=${queryString}`);
+  queryParams.push("track_total_hits=true");
+
+  const url = `/api/v1/search/query?index=dataAsset&${queryParams.join("&")}`;
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_DMS_OMD}${url}`, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+
+  const search_facets = {
+    organization: await getFacets(
+      queryString,
+      "domains.displayName.keyword",
+      "organization"
+    ),
+    tags: await getFacets(queryString, "tags.name.keyword", "tags"),
+    res_format: await getFacets(queryString, "assets.type", "res_format"),
+  };
+
+  const searchResults = {
+    count: data.hits.total.value,
+    datasets: data.hits.hits.map((r) => dataProductToDataset(r._source)),
+    search_facets: search_facets,
+  };
+
+  return searchResults;
+}
+
+function dataProductToDataset(dataProduct: any): Dataset {
+  return {
+    id: dataProduct.id,
+    name: dataProduct.fullyQualifiedName,
+    title: dataProduct.displayName,
+    notes: dataProduct.description,
+    metadata_modified: new Date(dataProduct.updatedAt).toISOString(),
+    version: dataProduct.version,
+    resources: dataProduct.assets.map((a) => ({
+      id: a.id,
+      name: a.displayName,
+      format: a.type,
+      description: a.description ?? null,
+    })),
+    organization: {
+      id: dataProduct.domains.at(0).id,
+      name: dataProduct.domains.at(0).fullyQualifiedName,
+      title: dataProduct.domains.at(0).displayName,
+      display_name: dataProduct.domains.at(0).displayName,
+      description: dataProduct.domains.at(0).description,
+      is_organization: true,
+      type: "organization",
+      state: "active",
+      package_count: 123, // TODO: can we implement this?
+    },
+    tags: dataProduct.tags.map((t) => ({ display_name: t.name })),
+  };
+}
+
+async function getFacets(queryFilter: string, field: string, name: string) {
+  const queryParams: string[] = [];
+  queryParams.push(`q=${queryFilter}`);
+  queryParams.push(`value=.*`);
+  queryParams.push(`field=${field}`);
+  const url = `/api/v1/search/aggregate?index=dataAsset&${queryParams.join(
+    "&"
+  )}`;
+  const res = await fetch(`${process.env.NEXT_PUBLIC_DMS_OMD}${url}`, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  const facet = {
+    title: name,
+    items: data.aggregations[`sterms#${field}`].buckets.map((f) => ({
+      name: f.key,
+      display_name: f.key,
+      count: f.doc_count,
+    })),
+  };
+  return facet;
+}
