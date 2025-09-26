@@ -1,4 +1,4 @@
-import { CKAN } from "@portaljs/ckan";
+import { Activity, CKAN } from "@portaljs/ckan";
 import {
   privateToPublicDatasetName,
   privateToPublicOrgName,
@@ -7,6 +7,7 @@ import {
 import { Dataset, PackageSearchOptions } from "@/schemas/dataset.interface";
 import CkanRequest, { CkanResponse } from "@portaljs/ckan-api-client-js";
 import { Resource } from "@/schemas/resource.interface";
+import { domainToOrg } from "./orgs";
 
 const DMS = process.env.NEXT_PUBLIC_DMS;
 const mainOrg = process.env.NEXT_PUBLIC_ORG;
@@ -130,13 +131,18 @@ export async function getDataProduct(name: string) {
     },
   });
   const data = await res.json();
-  return dataProductToDataset(data);
+  const dataset = dataProductToDataset(data);
+  const activityStream = await listDataProductVersions({ id: dataset.id });
+  dataset.activity_stream = activityStream;
+  return dataset;
 }
 
 export async function getTable(id: string) {
   const searchParams = new URLSearchParams();
   searchParams.set("fields", "columns,tags,extension");
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/tables/${id}?${searchParams.toString()}`;
+  const url = `${
+    process.env.NEXT_PUBLIC_DMS_OMD
+  }/api/v1/tables/${id}?${searchParams.toString()}`;
   const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
@@ -147,8 +153,22 @@ export async function getTable(id: string) {
   return resource;
 }
 
+export async function listTableVersions({ id }: { id: string }) {
+  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/tables/${id}/versions`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  const activityStream = data.versions.map((v) =>
+    versionToActivity(JSON.parse(v), "resource")
+  );
+  console.log(activityStream[0].data.package)
+  return activityStream;
+}
+
 function tableToResource(table: any): Resource {
-    console.log(table.columns)
   return {
     id: table.id,
     name: table.displayName ?? table.name,
@@ -157,8 +177,8 @@ function tableToResource(table: any): Resource {
     url: "",
     metadata_modified: new Date(table.updatedAt).toISOString(),
     extras: {
-        columns: table.columns
-    }
+      columns: table.columns,
+    },
   };
 }
 
@@ -274,6 +294,43 @@ export function dataProductToDataset(dataProduct: any): Dataset {
       package_count: 123, // TODO: can we implement this?
     },
     tags: dataProduct.tags.map((t) => ({ display_name: t.name })),
+  };
+}
+
+async function listDataProductVersions({ id }: { id: string }) {
+  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/dataProducts/${id}/versions`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  const activityStream = data.versions.map((v) =>
+    versionToActivity(JSON.parse(v), "package")
+  );
+  return activityStream;
+}
+
+export function versionToActivity(
+  version: any,
+  type: "package" | "organization" | "resource"
+): Activity {
+  let data;
+  if (type === "package") {
+    data = { package: dataProductToDataset(version) };
+  } else if (type === "organization") {
+    data = { package: domainToOrg(version) };
+  } else if (type === "resource") {
+    data = { package: tableToResource(version) };
+  }
+
+  return {
+    id: version.id,
+    timestamp: new Date(version.updatedAt).toISOString(),
+    user_id: version.updatedBy,
+    object_id: version.name,
+    activity_type: !version.changeDescription ? "created" : "updated",
+    data,
   };
 }
 

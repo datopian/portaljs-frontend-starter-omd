@@ -1,6 +1,6 @@
 import { GetServerSideProps } from "next";
 import Layout from "@/components/_shared/Layout";
-import { CKAN } from "@portaljs/ckan";
+import { Activity, CKAN } from "@portaljs/ckan";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -10,10 +10,11 @@ import { PrimeReactProvider } from "primereact/api";
 import ResponsiveGridData from "@/components/responsiveGrid";
 import { getTimeAgo } from "@/lib/utils";
 import { ResourcePageStructuredData } from "@/components/schema/ResourcePageStructuredData";
-import { getTable } from "@/lib/queries/dataset";
+import { getTable, listTableVersions } from "@/lib/queries/dataset";
 import ColumnsList from "@/components/resources/table/Columns";
 import Tabs from "@/components/_shared/Tabs";
 import { Resource } from "@/schemas/resource.interface";
+import ActivityStream from "@/components/_shared/ActivityStream";
 
 const PdfViewer = dynamic(
   () => import("@portaljs/components").then((mod) => mod.PdfViewer),
@@ -59,8 +60,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       };
     }
 
+    let activityStream = [];
+    if (["table"].includes(resource.format)) {
+      activityStream = await listTableVersions({ id: resource.id });
+      console.log(activityStream)
+    }
+
     return {
-      props: { resource, orgName },
+      props: { resource, orgName, activityStream },
     };
   } catch (e) {
     console.log(e);
@@ -73,9 +80,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 export default function ResourcePage({
   resource,
   orgName,
+  activityStream
 }: {
   resource: Resource;
   orgName: string;
+  activityStream: Activity[]
 }): JSX.Element {
   const resourceFormat = resource.format.toLowerCase();
   const router = useRouter();
@@ -242,6 +251,17 @@ export default function ResourcePage({
                                 <ColumnsList
                                   columns={resource?.extras?.columns}
                                 />
+                              </div>
+                            </div>
+                          ),
+                        },
+                        {
+                          id: "activity",
+                          title: "Activity Stream",
+                          content: (
+                            <div className="w-full">
+                              <div className="mt-8">
+                                <ActivityStream activities={activityStream} />
                               </div>
                             </div>
                           ),

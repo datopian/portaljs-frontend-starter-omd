@@ -37,10 +37,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // const activityStream = await ckan.getDatasetActivityStream(
     //   privateDatasetName
     // );
-    dataset = {
-      ...dataset,
-      activity_stream: activityStream,
-    };
+    // dataset = {
+    //   ...dataset,
+    //   activity_stream: activityStream,
+    // };
 
     if (!dataset.organization || "@" + dataset.organization.name !== orgName) {
       return {

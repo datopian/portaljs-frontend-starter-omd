@@ -7,8 +7,7 @@ import Tabs from "@/components/_shared/Tabs";
 import styles from "styles/DatasetInfo.module.scss";
 import DatasetList from "@/components/_shared/DatasetList";
 import { CKAN } from "@portaljs/ckan";
-import { getDomain, getOrganization } from "@/lib/queries/orgs";
-import { getDataset } from "@/lib/queries/dataset";
+import { getDomain } from "@/lib/queries/orgs";
 
 import HeroSection from "@/components/_shared/HeroSection";
 import { OrganizationIndividualPageStructuredData } from "@/components/schema/OrganizationIndividualPageStructuredData";
