@@ -1,5 +1,4 @@
 import { GetServerSideProps } from "next";
-import Head from "next/head";
 import OrgNavCrumbs from "@/components/organization/individualPage/OrgNavCrumbs";
 import OrgInfo from "@/components/organization/individualPage/OrgInfo";
 import ActivityStream from "@/components/_shared/ActivityStream";
@@ -8,7 +7,7 @@ import Tabs from "@/components/_shared/Tabs";
 import styles from "styles/DatasetInfo.module.scss";
 import DatasetList from "@/components/_shared/DatasetList";
 import { CKAN } from "@portaljs/ckan";
-import { getOrganization } from "@/lib/queries/orgs";
+import { getDomain, getOrganization } from "@/lib/queries/orgs";
 import { getDataset } from "@/lib/queries/dataset";
 
 import HeroSection from "@/components/_shared/HeroSection";
@@ -24,12 +23,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
   orgName = orgName.split("@")[1];
-  let org = await getOrganization({
-    name: orgName as string,
-    include_datasets: true,
-  });
+  // let org = await getOrganization({
+  //   name: orgName as string,
+  //   include_datasets: true,
+  // });
 
-  if (org.packages) {
+  /* if (org.packages) {
     const packagesWithResources = await Promise.all(
       org.packages.map(async (dataset) => {
         try {
@@ -45,16 +44,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     org = {
       ...org,
       packages: packagesWithResources.filter(Boolean),
-    };
-  }
+    }; 
+  }*/
+  const org = await getDomain({name: orgName})
 
-  const activityStream = await ckan.getOrgActivityStream(org._name);
-  if (!org) {
-    return {
-      notFound: true,
-    };
-  }
-  org = { ...org, activity_stream: activityStream };
+  // const activityStream = await ckan.getOrgActivityStream(org._name);
+  // if (!org) {
+  //   return {
+  //     notFound: true,
+  //   };
+  // }
+  // org = { ...org, activity_stream: activityStream };
   return {
     props: {
       org,

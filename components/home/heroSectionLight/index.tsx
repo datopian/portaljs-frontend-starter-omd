@@ -1,7 +1,6 @@
 import SearchForm from "./SearchForm";
 
 import {
-  RiBarChartLine,
   RiFileCopy2Line,
   RiFunctionLine,
   RiTeamLine,
@@ -13,7 +12,6 @@ export default function HeroSectionLight({
 }: {
   stats: {
     orgCount: number;
-    groupCount: number;
     datasetCount: number;
   };
 }) {
@@ -42,12 +40,6 @@ export default function HeroSectionLight({
               href="/search"
               count={stats.datasetCount}
               label="Dataset"
-            />
-            <Stat
-              Icon={RiFunctionLine}
-              href="/groups"
-              count={stats.groupCount}
-              label="Group"
             />
             <Stat
               Icon={RiTeamLine}

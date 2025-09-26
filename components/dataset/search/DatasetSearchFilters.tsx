@@ -92,54 +92,6 @@ export default function DatasetSearchFilters() {
             )}
           </div>
         </FacetCard>
-        {searchFacets.groups?.items.length > 0 && (
-          <FacetCard
-            title={
-              <>
-                Refine by <span className="text-accent">Theme</span>
-              </>
-            }
-            showClear={options.groups.length > 0}
-            clearAction={() => {
-              setOptions({
-                groups: [],
-                offset: 0,
-              });
-            }}
-          >
-            <div>
-              <div className="max-h-[400px] overflow-y-auto">
-                {searchFacets.groups?.items
-                  ?.slice(
-                    0,
-                    seeMoreGroups
-                      ? searchFacets.groups?.items?.length
-                      : maxPerView
-                  )
-                  .map((group: PackageFacetOptions) => {
-                    return (
-                      <MultiCheckbox
-                        name={"groups"}
-                        value={group.name}
-                        label={group.display_name}
-                        count={group.count}
-                        key={group.name}
-                      />
-                    );
-                  })}
-              </div>
-              {searchFacets.groups?.items?.length > maxPerView && (
-                <button
-                  onClick={() => setSeeMoreGroups(!seeMoreGroups)}
-                  type="button"
-                  className="bg-[var(--dark)] hover:bg-black text-white py-[10px] px-[12px] rounded-[4px] mt-2 transition font-[600] text-[12px] leading-[15px]"
-                >
-                  See {seeMoreGroups ? "Less" : "More"}
-                </button>
-              )}
-            </div>
-          </FacetCard>
-        )}
         {searchFacets.tags?.items?.length > 0 && (
           <FacetCard
             title={

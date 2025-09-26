@@ -9,7 +9,7 @@ import Tabs from "@/components/_shared/Tabs";
 import { CKAN } from "@portaljs/ckan";
 import styles from "styles/DatasetInfo.module.scss";
 import { publicToPrivateDatasetName } from "@/lib/queries/utils";
-import { getDataset } from "@/lib/queries/dataset";
+import { getDataProduct, getDataset } from "@/lib/queries/dataset";
 import HeroSection from "@/components/_shared/HeroSection";
 import { DatasetPageStructuredData } from "@/components/schema/DatasetPageStructuredData";
 
@@ -26,15 +26,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   try {
     const privateDatasetName = publicToPrivateDatasetName(datasetName);
-    let dataset = await getDataset({ name: datasetName as string });
+    // let dataset = await getDataset({ name: datasetName as string });
+    let dataset = await getDataProduct(datasetName)
     if (!dataset) {
       return {
         notFound: true,
       };
     }
-    const activityStream = await ckan.getDatasetActivityStream(
-      privateDatasetName
-    );
+    const activityStream = []
+    // const activityStream = await ckan.getDatasetActivityStream(
+    //   privateDatasetName
+    // );
     dataset = {
       ...dataset,
       activity_stream: activityStream,

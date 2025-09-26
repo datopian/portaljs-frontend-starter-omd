@@ -26,7 +26,7 @@ export default function ResourcesList({
                 {resource.name || "No title"}
               </h4>
               <p className="text-sm font-normal text-stone-500 line-clamp-4">
-                {resource.description || "No description"}
+                {resource.description ? <span dangerouslySetInnerHTML={{__html: resource.description}} /> : "No description"}
               </p>
               <div className="mt-2">
                 <ResourcesBadges resources={[resource]} />
@@ -34,7 +34,7 @@ export default function ResourcesList({
             </div>
           </article>
           <div className="flex  gap-2 justify-start pt-2 sm:pt-0">
-            {(["csv", "pdf", "xlsx", "xls", "geojson"].includes(
+            {(["csv", "pdf", "xlsx", "xls", "geojson", "table"].includes(
               resource.format.toLowerCase()
             ) ||
               resource?.iframe) && (

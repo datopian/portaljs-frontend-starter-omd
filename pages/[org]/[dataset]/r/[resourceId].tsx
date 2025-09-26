@@ -1,17 +1,19 @@
 import { GetServerSideProps } from "next";
 import Layout from "@/components/_shared/Layout";
-import { Resource } from "@portaljs/ckan";
 import { CKAN } from "@portaljs/ckan";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { RiArrowLeftLine } from "react-icons/ri";
 import ResourcesBadges from "@/components/dataset/_shared/ResourcesBadges";
-import Head from "next/head";
 import { PrimeReactProvider } from "primereact/api";
 import ResponsiveGridData from "@/components/responsiveGrid";
 import { getTimeAgo } from "@/lib/utils";
 import { ResourcePageStructuredData } from "@/components/schema/ResourcePageStructuredData";
+import { getTable } from "@/lib/queries/dataset";
+import ColumnsList from "@/components/resources/table/Columns";
+import Tabs from "@/components/_shared/Tabs";
+import { Resource } from "@/schemas/resource.interface";
 
 const PdfViewer = dynamic(
   () => import("@portaljs/components").then((mod) => mod.PdfViewer),
@@ -48,7 +50,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       };
     }
 
-    const resource = await ckan.getResourceMetadata(resourceId as string);
+    // const resource = await ckan.getResourceMetadata(resourceId as string);
+    const resource = await getTable(resourceId as string);
     if (!resource) {
       console.log("[!] Resource metadata not found");
       return {
@@ -69,10 +72,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 export default function ResourcePage({
   resource,
-  orgName
+  orgName,
 }: {
   resource: Resource;
-  orgName: string
+  orgName: string;
 }): JSX.Element {
   const resourceFormat = resource.format.toLowerCase();
   const router = useRouter();
@@ -80,7 +83,11 @@ export default function ResourcePage({
 
   return (
     <PrimeReactProvider>
-      <ResourcePageStructuredData resource={resource} orgName={orgName} dataset={dataset} />
+      <ResourcePageStructuredData
+        resource={resource}
+        orgName={orgName}
+        dataset={dataset}
+      />
       <Layout>
         <div className="custom-container pt-[30px]">
           <Link
@@ -110,24 +117,25 @@ export default function ResourcePage({
           <section className=" pb-16">
             <div className="py-2 custom-container ">
               <div className="flex flex-col  md:flex-row gap-4 md:items-center py-2">
-                <span className="font-medium text-gray-500 inline">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-5 h-5 text-accent inline mr-1"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
-                    />
-                  </svg>
-                  Created: {resource.created &&
-                    getTimeAgo(resource.created)}
-                </span>
+                {resource.created && (
+                  <span className="font-medium text-gray-500 inline">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5 text-accent inline mr-1"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                      />
+                    </svg>
+                    Created: {resource.created && getTimeAgo(resource.created)}
+                  </span>
+                )}
                 <span className="font-medium text-gray-500 inline">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -147,23 +155,25 @@ export default function ResourcePage({
                   {resource.metadata_modified &&
                     getTimeAgo(resource.metadata_modified)}
                 </span>
-                <span className="font-medium text-gray-500 inline">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-5 w-5 text-accent inline mr-1"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
-                    />
-                  </svg>
-                  Size: {resource.size || "N/A"}
-                </span>
+                {resource.size && (
+                  <span className="font-medium text-gray-500 inline">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="h-5 w-5 text-accent inline mr-1"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"
+                      />
+                    </svg>
+                    Size: {resource.size || "N/A"}
+                  </span>
+                )}
               </div>
               <div className=" py-4">
                 <Link
@@ -188,7 +198,10 @@ export default function ResourcePage({
                 </Link>
               </div>
               <div className="py-4">
-                <p className="text-stone-500">{resource.description}</p>
+                <p
+                  className="text-stone-500"
+                  dangerouslySetInnerHTML={{ __html: resource.description }}
+                ></p>
               </div>
               <div className="">
                 {resourceFormat == "csv" ? (
@@ -215,6 +228,27 @@ export default function ResourcePage({
                     src={resource.url}
                     style={{ width: `100%`, height: `600px` }}
                   ></iframe>
+                )}
+                {resource.format === "table" && (
+                  <div className={`bg-white shadow-lg p-5 rounded-lg`}>
+                    <Tabs
+                      items={[
+                        {
+                          id: "schema",
+                          title: "Schema",
+                          content: (
+                            <div className="w-full">
+                              <div className="mt-8">
+                                <ColumnsList
+                                  columns={resource?.extras?.columns}
+                                />
+                              </div>
+                            </div>
+                          ),
+                        },
+                      ]}
+                    ></Tabs>
+                  </div>
                 )}
               </div>
             </div>

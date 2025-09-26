@@ -4,12 +4,9 @@ import {
   privateToPublicOrgName,
   publicToPrivateDatasetName,
 } from "./utils";
-import {
-  Dataset,
-  PackageFacetOptions,
-  PackageSearchOptions,
-} from "@/schemas/dataset.interface";
+import { Dataset, PackageSearchOptions } from "@/schemas/dataset.interface";
 import CkanRequest, { CkanResponse } from "@portaljs/ckan-api-client-js";
+import { Resource } from "@/schemas/resource.interface";
 
 const DMS = process.env.NEXT_PUBLIC_DMS;
 const mainOrg = process.env.NEXT_PUBLIC_ORG;
@@ -121,6 +118,50 @@ export const getDataset = async ({ name }: { name: string }) => {
   };
 };
 
+export async function getDataProduct(name: string) {
+  const searchParams = new URLSearchParams();
+  searchParams.set("fields", "assets,domains,tags");
+  const url = `${
+    process.env.NEXT_PUBLIC_DMS_OMD
+  }/api/v1/dataProducts/name/${name}?${searchParams.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  return dataProductToDataset(data);
+}
+
+export async function getTable(id: string) {
+  const searchParams = new URLSearchParams();
+  searchParams.set("fields", "columns,tags,extension");
+  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/tables/${id}?${searchParams.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  const resource = tableToResource(data);
+  return resource;
+}
+
+function tableToResource(table: any): Resource {
+    console.log(table.columns)
+  return {
+    id: table.id,
+    name: table.displayName ?? table.name,
+    format: "table",
+    description: table.description ?? null,
+    url: "",
+    metadata_modified: new Date(table.updatedAt).toISOString(),
+    extras: {
+        columns: table.columns
+    }
+  };
+}
+
 export async function searchDataProducts(options: PackageSearchOptions) {
   const queryParams: string[] = [];
 
@@ -207,7 +248,7 @@ export async function searchDataProducts(options: PackageSearchOptions) {
   return searchResults;
 }
 
-function dataProductToDataset(dataProduct: any): Dataset {
+export function dataProductToDataset(dataProduct: any): Dataset {
   return {
     id: dataProduct.id,
     name: dataProduct.fullyQualifiedName,

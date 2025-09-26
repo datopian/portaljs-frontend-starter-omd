@@ -53,29 +53,6 @@ export default function MainSection({
             <PopularDatasets datasets={datasets} />
           </section>
         )}
-        <section className="relative">
-          {groups.length > 4 && (
-            <Link
-              href="/groups"
-              className={`font-montserrat font-semibold flex items-center gap-1 uppercase hover:text-darkaccent ml-auto w-fit absolute right-0 top-[-30px]`}
-            >
-              View all categories
-              <ArrowLongRightIcon width={16} />
-            </Link>
-          )}
-          <div className="col-span-1 grid sm:grid-cols-2 gap-4 md:pl-2">
-            {groups.slice(0, 4).map((group) => (
-              <article key={group.id} className="col-span-1 h-fit">
-                <GroupCard
-                  description={group.description}
-                  display_name={group.display_name}
-                  image_display_url={group.image_display_url}
-                  name={group.name}
-                />
-              </article>
-            ))}
-          </div>
-        </section>
       </section>
     </section>
   );

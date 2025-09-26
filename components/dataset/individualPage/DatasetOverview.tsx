@@ -20,14 +20,6 @@ export default function DatasetOverview({ dataset }: { dataset: Dataset }) {
         </p>
       </div>
       <div className="  pb-5">
-        <h4 className="pb-1 text-xs label-txt tracking-wider">GROUP</h4>
-        <p className="font-semibold">
-          {dataset.groups.length > 0
-            ? dataset.groups.map((group) => group.title).join(", ")
-            : "N/A"}
-        </p>
-      </div>
-      <div className="  pb-5">
         <h4 className="pb-1 text-xs label-txt tracking-wider">DATASET DATE</h4>
         <p className="font-semibold">
           {dataset.metadata_created

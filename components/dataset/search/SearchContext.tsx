@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { createContext, useContext } from "react";
 import useSWR from "swr";
 import { useRef, useEffect, useCallback } from "react";
+import { searchDatasets } from "@/lib/queries/dataset";
 
 type setQueryParamFn<T> = (value: T) => void;
 
@@ -80,6 +81,7 @@ export const SearchStateProvider = ({
       const res = await fetch(`${api}?${searchParams.toString()}`);
       const data = await res.json();
       return data;
+      // return searchDatasets(options)
     },
     { use: [laggy] }
   );
