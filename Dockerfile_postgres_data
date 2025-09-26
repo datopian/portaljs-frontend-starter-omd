@@ -1,0 +1,4 @@
+FROM postgres:14
+WORKDIR /docker-entrypoint-initdb.d
+COPY postgres_data.sql .
+RUN chmod -R 775 /docker-entrypoint-initdb.d
