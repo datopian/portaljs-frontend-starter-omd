@@ -15,7 +15,7 @@ const SearchForm: React.FC = () => {
     }
     router.push({
       pathname: "/search",
-      query: { q: searchQuery },
+      query: { query: searchQuery },
     });
   };
 
