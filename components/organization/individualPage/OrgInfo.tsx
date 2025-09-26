@@ -43,7 +43,7 @@ export default function OrgInfo({ org }: { org: Organization }) {
           </svg>
           Packages: {org.packages ? org.packages.length : 0}
         </span>
-        <span className="font-medium text-gray-500 inline">
+        {org.created && <span className="font-medium text-gray-500 inline">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -59,7 +59,7 @@ export default function OrgInfo({ org }: { org: Organization }) {
             />
           </svg>
           Created: {org.created && getTimeAgo(org.created)}
-        </span>
+        </span>}
       </div>
       <div className="py-4 my-4 border-y">
         <p className="text-sm font-normal text-stone-500 line-clamp-4">

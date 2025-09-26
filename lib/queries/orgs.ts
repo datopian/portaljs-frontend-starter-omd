@@ -5,6 +5,7 @@ import {
   publicToPrivateOrgName,
 } from "./utils";
 import CkanRequest, { CkanResponse } from "@portaljs/ckan-api-client-js";
+import { dataProductToDataset } from "./dataset";
 
 const DMS = process.env.NEXT_PUBLIC_DMS;
 const mainOrg = process.env.NEXT_PUBLIC_ORG;
@@ -38,6 +39,52 @@ export const getOrganization = async ({
     _name: organization.result.name,
   };
 };
+
+export async function getDomain({
+  name,
+}: {
+  name: string;
+}): Promise<Organization> {
+  const searchParams = new URLSearchParams();
+  searchParams.set("fields", "");
+
+  const url = `${
+    process.env.NEXT_PUBLIC_DMS_OMD
+  }/api/v1/domains/name/${name}?${searchParams.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+
+  const datasets = await getDomainDataProducts(name);
+
+  const organization = domainToOrg(data);
+  organization.package_count = datasets.length
+  organization.packages = datasets;
+
+  return organization
+}
+
+export async function getDomainDataProducts(domain: string): Promise<Dataset[]> {
+  const searchParams = new URLSearchParams();
+  const query = `domains.displayName.keyword:"${domain}" AND entityType.keyword:dataproduct`;
+  searchParams.set("q", query);
+  searchParams.set("index", "dataAsset")
+  const url = `${
+    process.env.NEXT_PUBLIC_DMS_OMD
+  }/api/v1/search/query?${searchParams.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+
+  const data = await res.json();
+  const datasets = data.hits.hits.map((d) => dataProductToDataset(d._source));
+  return datasets;
+}
 
 export const getAllOrganizations = async ({
   detailed = true, // Whether to add organization_show or not
@@ -100,3 +147,28 @@ export const getAllOrganizations = async ({
 
   return organizations;
 };
+
+export async function getAllDomains(): Promise<Organization[]> {
+  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/domains`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  return data.data.map((d) => domainToOrg(d));
+}
+
+function domainToOrg(domain: any): Organization {
+  return {
+    id: domain.id,
+    name: domain.fullyQualifiedName,
+    title: domain.name,
+    display_name: domain.name,
+    description: domain.description,
+    package_count: 123, // TODO: how should we handle this?
+    is_organization: true,
+    type: "organization",
+    state: "active",
+  };
+}

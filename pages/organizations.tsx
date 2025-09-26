@@ -1,15 +1,15 @@
-import Head from "next/head";
 import MiniSearch from "minisearch";
 import { useState } from "react";
 import SearchHero from "../components/dataset/_shared/SearchHero";
 import ListOfOrgs from "../components/organization/ListOfOrganizations";
 import Layout from "../components/_shared/Layout";
 import { Organization } from "@portaljs/ckan";
-import { getAllOrganizations } from "@/lib/queries/orgs";
 import { OrganizationPageStructuredData } from "@/components/schema/OrganizationPageStructuredData";
+import { getAllDomains } from "@/lib/queries/orgs";
 
 export async function getServerSideProps() {
-  const orgs = await getAllOrganizations({ detailed: true });
+  // const orgs = await getAllOrganizations({ detailed: true });
+  const orgs = await getAllDomains()
   return {
     props: {
       orgs,

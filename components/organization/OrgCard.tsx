@@ -41,7 +41,7 @@ export default function GroupCard({
           {display_name}
         </h3>
         <p className="font-inter font-medium text-sm mt-1 mb-6 line-clamp-2">
-          {description}
+            <div dangerouslySetInnerHTML={{__html: description}}></div>
         </p>
 
         <span className="font-inter mt-auto font-medium text-sm text-accent cursor-pointer flex items-center gap-1">
