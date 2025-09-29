@@ -79,11 +79,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 export default function ResourcePage({
   resource,
   orgName,
-  activityStream
+  activityStream,
 }: {
   resource: Resource;
   orgName: string;
-  activityStream: Activity[]
+  activityStream: Activity[];
 }): JSX.Element {
   const resourceFormat = resource.format.toLowerCase();
   const router = useRouter();
@@ -183,28 +183,30 @@ export default function ResourcePage({
                   </span>
                 )}
               </div>
-              <div className=" py-4">
-                <Link
-                  href={resource.url}
-                  className="bg-accent h-auto py-2 px-4 text-sm text-white rounded-xl font-roboto font-bold hover:bg-darkaccent hover:text-white duration-150 flex items-center gap-1 w-fit"
-                >
-                  Download
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="1.5"
-                    stroke="currentColor"
-                    className="w-6 h-6"
+              {resource.url && (
+                <div className=" py-4">
+                  <Link
+                    href={resource.url}
+                    className="bg-accent h-auto py-2 px-4 text-sm text-white rounded-xl font-roboto font-bold hover:bg-darkaccent hover:text-white duration-150 flex items-center gap-1 w-fit"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                    />
-                  </svg>
-                </Link>
-              </div>
+                    Download
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="1.5"
+                      stroke="currentColor"
+                      className="w-6 h-6"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                      />
+                    </svg>
+                  </Link>
+                </div>
+              )}
               <div className="py-4">
                 <p
                   className="text-stone-500"

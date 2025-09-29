@@ -173,7 +173,7 @@ function tableToResource(table: any): Resource {
     name: table.displayName ?? table.name,
     format: "table",
     description: table.description ?? null,
-    url: "",
+    // url: `/api/resources/${table.fullyQualifiedName}/download`,
     metadata_modified: new Date(table.updatedAt).toISOString(),
     extras: {
       columns: table.columns,
