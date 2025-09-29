@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useMemo, useState } from "react";
 import {
   Table,
@@ -10,16 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "components/_shared/Table";
-// import { Input } from "~/components/ui/input";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "~/components/ui/select";
 import { Chip } from "@/components/_shared/Chip";
-import { ArrowDownIcon } from "@heroicons/react/20/solid";
+import Link from "next/link";
 
 type Column = {
   name: string;
@@ -28,17 +18,21 @@ type Column = {
   tags: {
     source: string;
     name: string;
+    tagFQN: string;
   }[];
   dataType: string;
 };
-type Tag = {};
 
 export default function ColumnsList({
   columns,
   glossaryTerm,
 }: {
   columns: Column[];
-  glossaryTerm?: { name?: string; description?: string };
+  glossaryTerm?: {
+    name?: string;
+    description?: string;
+    tagFQN?: string;
+  };
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -74,7 +68,14 @@ export default function ColumnsList({
   return (
     <div className="">
       <div className="mb-5 flex items-center text-sm text-muted-foreground">
-        Glossary Term: {glossaryTerm ? <div>TODO</div> : "None"}
+        <span className="mr-1">Glossary Term: </span>
+        {glossaryTerm ? (
+          <Link href={`/glossaries/${glossaryTerm.tagFQN}`}>
+            <Chip text={glossaryTerm.name} tooltip={glossaryTerm.description} />
+          </Link>
+        ) : (
+          "None"
+        )}
       </div>
       <div className="flex items-center justify-between gap-x-4 pb-5">
         <input
@@ -123,14 +124,16 @@ export default function ColumnsList({
                   {column.description || "No description available"}
                 </TableCell>
                 <TableCell>
-                  {/*glossaryTerms?.map((gt) => {
+                  {glossaryTerms?.map((gt) => {
                     return (
-                      <GlossaryTermChipLink
-                        key={`col-${column.name}-glossary-${gt.name}`}
-                        term={gt}
-                      />
+                      <Link href={`/glossaries/${gt.tagFQN}`}>
+                        <Chip
+                          key={`col-${column.name}-glossary-${gt.name}`}
+                          text={gt.name}
+                        />
+                      </Link>
                     );
-                  })*/}
+                  })}
                 </TableCell>
                 <TableCell>
                   {tags?.map((t) => {

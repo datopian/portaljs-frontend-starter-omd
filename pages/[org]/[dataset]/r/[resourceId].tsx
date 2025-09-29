@@ -63,7 +63,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     let activityStream = [];
     if (["table"].includes(resource.format)) {
       activityStream = await listTableVersions({ id: resource.id });
-      console.log(activityStream)
     }
 
     return {
@@ -250,6 +249,7 @@ export default function ResourcePage({
                               <div className="mt-8">
                                 <ColumnsList
                                   columns={resource?.extras?.columns}
+                                  glossaryTerm={resource?.extras?.glossaryTerm}
                                 />
                               </div>
                             </div>

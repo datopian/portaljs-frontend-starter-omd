@@ -164,7 +164,6 @@ export async function listTableVersions({ id }: { id: string }) {
   const activityStream = data.versions.map((v) =>
     versionToActivity(JSON.parse(v), "resource")
   );
-  console.log(activityStream[0].data.package)
   return activityStream;
 }
 
@@ -178,6 +177,7 @@ function tableToResource(table: any): Resource {
     metadata_modified: new Date(table.updatedAt).toISOString(),
     extras: {
       columns: table.columns,
+      glossaryTerm: table.tags.find(t => t.source === "Glossary") ?? null
     },
   };
 }
@@ -357,4 +357,74 @@ async function getFacets(queryFilter: string, field: string, name: string) {
     })),
   };
   return facet;
+}
+
+export async function tableExport({ fqn }: { fqn: string }) {
+  const url = `${process.env.NEXT_PUBLIC_OMD}/api/v1/tables/${fqn}/export`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.text();
+  return data;
+}
+
+export async function listGlossaries() {
+  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/glossaries`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  return data;
+}
+
+export async function getGlossaryTerm({
+  fqn,
+  fields,
+}: {
+  fqn: string;
+  fields?: string;
+}) {
+  const searchParams = new URLSearchParams();
+  if (fields) {
+    searchParams.set("fields", fields);
+  }
+  const url = `${
+    process.env.NEXT_PUBLIC_DMS_OMD
+  }/api/v1/glossaryTerms/name/${fqn}?${searchParams.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  return data;
+}
+
+export async function listGlossaryTerms({
+  glossaryId,
+  fields,
+  directChildrenOf,
+}: {
+  glossaryId?: string;
+  fields: string;
+  directChildrenOf: string;
+}) {
+  const searchParams = new URLSearchParams();
+  if (glossaryId) {
+    searchParams.set("glossaryId", glossaryId);
+  }
+  searchParams.set("fields", fields);
+  searchParams.set("directChildrenOf", directChildrenOf);
+  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/glossaryTerms?${searchParams.toString()}`;
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
+    },
+  });
+  const data = await res.json();
+  return data;
 }

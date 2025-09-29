@@ -1,0 +1,37 @@
+import { searchDataProducts, tableExport } from "@/lib/queries/dataset";
+import { NextApiRequest, NextApiResponse } from "next";
+import { ZodError } from "zod";
+
+/* NOTE: this endpoint is only necessary for OMD */
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "GET") {
+    try {
+      const options = req.query as any;
+
+      if (typeof options.orgs === "string") {
+        options.orgs = [options.orgs];
+      }
+
+      if (typeof options.tags === "string") {
+        options.tags = [options.tags];
+      }
+
+      if (typeof options.resFormat === "string") {
+        options.resFormat = [options.resFormat];
+      }
+
+      const results = await tableExport(options);
+      res.status(200).text(results);
+    } catch (e) {
+      if (e instanceof ZodError) {
+        res.status(400).json({ message: "Validation Error", errors: e.issues });
+      }
+    }
+  } else {
+    res.setHeader("Allow", ["GET"]);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+}
