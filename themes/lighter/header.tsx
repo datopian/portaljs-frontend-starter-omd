@@ -61,7 +61,7 @@ export default function LighterThemeHeader() {
               <Link
                 href="/glossaries"
                 className={`font-semibold my-auto ${
-                  router.pathname === "/glossary" ? "text-accent" : ""
+                  router.pathname === "/glossaries" ? "text-accent" : ""
                 }`}
               >
                 GLOSSARIES

@@ -6,6 +6,7 @@ import {
 } from "./utils";
 import CkanRequest, { CkanResponse } from "@portaljs/ckan-api-client-js";
 import { dataProductToDataset, versionToActivity } from "./dataset";
+import { omdFetch } from "../omd";
 
 const DMS = process.env.NEXT_PUBLIC_DMS;
 const mainOrg = process.env.NEXT_PUBLIC_ORG;
@@ -48,14 +49,8 @@ export async function getDomain({
   const searchParams = new URLSearchParams();
   searchParams.set("fields", "");
 
-  const url = `${
-    process.env.NEXT_PUBLIC_DMS_OMD
-  }/api/v1/domains/name/${name}?${searchParams.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `domains/name/${name}?${searchParams.toString()}`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
 
   const datasets = await getDomainDataProducts(name);
@@ -63,7 +58,9 @@ export async function getDomain({
   const organization = domainToOrg(data);
   organization.package_count = datasets.length;
   organization.packages = datasets;
-  organization.activity_stream = await listDomainVersions({ id: organization.id });
+  organization.activity_stream = await listDomainVersions({
+    id: organization.id,
+  });
 
   return organization;
 }
@@ -75,14 +72,8 @@ export async function getDomainDataProducts(
   const query = `domains.displayName.keyword:"${domain}" AND entityType.keyword:dataproduct`;
   searchParams.set("q", query);
   searchParams.set("index", "dataAsset");
-  const url = `${
-    process.env.NEXT_PUBLIC_DMS_OMD
-  }/api/v1/search/query?${searchParams.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `search/query?${searchParams.toString()}`;
+  const res = await omdFetch({ endpoint });
 
   const data = await res.json();
   const datasets = data.hits.hits.map((d) => dataProductToDataset(d._source));
@@ -90,12 +81,8 @@ export async function getDomainDataProducts(
 }
 
 async function listDomainVersions({ id }: { id: string }) {
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/domains/${id}/versions`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `domains/${id}/versions`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   const activityStream = data.versions.map((v) =>
     versionToActivity(JSON.parse(v), "organization")
@@ -166,12 +153,8 @@ export const getAllOrganizations = async ({
 };
 
 export async function getAllDomains(): Promise<Organization[]> {
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/domains`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `domains`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   return data.data.map((d) => domainToOrg(d));
 }

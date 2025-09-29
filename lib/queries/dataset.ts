@@ -8,6 +8,7 @@ import { Dataset, PackageSearchOptions } from "@/schemas/dataset.interface";
 import CkanRequest, { CkanResponse } from "@portaljs/ckan-api-client-js";
 import { Resource } from "@/schemas/resource.interface";
 import { domainToOrg } from "./orgs";
+import { omdFetch } from "../omd";
 
 const DMS = process.env.NEXT_PUBLIC_DMS;
 const mainOrg = process.env.NEXT_PUBLIC_ORG;
@@ -122,14 +123,8 @@ export const getDataset = async ({ name }: { name: string }) => {
 export async function getDataProduct(name: string) {
   const searchParams = new URLSearchParams();
   searchParams.set("fields", "assets,domains,tags");
-  const url = `${
-    process.env.NEXT_PUBLIC_DMS_OMD
-  }/api/v1/dataProducts/name/${name}?${searchParams.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `dataProducts/name/${name}?${searchParams.toString()}`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   const dataset = dataProductToDataset(data);
   const activityStream = await listDataProductVersions({ id: dataset.id });
@@ -140,26 +135,16 @@ export async function getDataProduct(name: string) {
 export async function getTable(id: string) {
   const searchParams = new URLSearchParams();
   searchParams.set("fields", "columns,tags,extension");
-  const url = `${
-    process.env.NEXT_PUBLIC_DMS_OMD
-  }/api/v1/tables/${id}?${searchParams.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `tables/${id}?${searchParams.toString()}`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   const resource = tableToResource(data);
   return resource;
 }
 
 export async function listTableVersions({ id }: { id: string }) {
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/tables/${id}/versions`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `tables/${id}/versions`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   const activityStream = data.versions.map((v) =>
     versionToActivity(JSON.parse(v), "resource")
@@ -177,7 +162,7 @@ function tableToResource(table: any): Resource {
     metadata_modified: new Date(table.updatedAt).toISOString(),
     extras: {
       columns: table.columns,
-      glossaryTerm: table.tags.find(t => t.source === "Glossary") ?? null
+      glossaryTerm: table.tags.find((t) => t.source === "Glossary") ?? null,
     },
   };
 }
@@ -240,13 +225,9 @@ export async function searchDataProducts(options: PackageSearchOptions) {
   queryParams.push(`q=${queryString}`);
   queryParams.push("track_total_hits=true");
 
-  const url = `/api/v1/search/query?index=dataAsset&${queryParams.join("&")}`;
+  const endpoint = `search/query?index=dataAsset&${queryParams.join("&")}`;
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_DMS_OMD}${url}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
 
   const search_facets = {
@@ -298,12 +279,8 @@ export function dataProductToDataset(dataProduct: any): Dataset {
 }
 
 async function listDataProductVersions({ id }: { id: string }) {
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/dataProducts/${id}/versions`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `dataProducts/${id}/versions`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   const activityStream = data.versions.map((v) =>
     versionToActivity(JSON.parse(v), "package")
@@ -339,14 +316,8 @@ async function getFacets(queryFilter: string, field: string, name: string) {
   queryParams.push(`q=${queryFilter}`);
   queryParams.push(`value=.*`);
   queryParams.push(`field=${field}`);
-  const url = `/api/v1/search/aggregate?index=dataAsset&${queryParams.join(
-    "&"
-  )}`;
-  const res = await fetch(`${process.env.NEXT_PUBLIC_DMS_OMD}${url}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `search/aggregate?index=dataAsset&${queryParams.join("&")}`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   const facet = {
     title: name,
@@ -360,23 +331,15 @@ async function getFacets(queryFilter: string, field: string, name: string) {
 }
 
 export async function tableExport({ fqn }: { fqn: string }) {
-  const url = `${process.env.NEXT_PUBLIC_OMD}/api/v1/tables/${fqn}/export`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `tables/${fqn}/export`;
+  const res = await omdFetch({ endpoint });
   const data = await res.text();
   return data;
 }
 
 export async function listGlossaries() {
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/glossaries`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `glossaries`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   return data;
 }
@@ -392,14 +355,8 @@ export async function getGlossaryTerm({
   if (fields) {
     searchParams.set("fields", fields);
   }
-  const url = `${
-    process.env.NEXT_PUBLIC_DMS_OMD
-  }/api/v1/glossaryTerms/name/${fqn}?${searchParams.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `glossaryTerms/name/${fqn}?${searchParams.toString()}`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   return data;
 }
@@ -419,12 +376,8 @@ export async function listGlossaryTerms({
   }
   searchParams.set("fields", fields);
   searchParams.set("directChildrenOf", directChildrenOf);
-  const url = `${process.env.NEXT_PUBLIC_DMS_OMD}/api/v1/glossaryTerms?${searchParams.toString()}`;
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${process.env.NEXT_PUBLIC_DMS_OMD_TOKEN}`,
-    },
-  });
+  const endpoint = `glossaryTerms?${searchParams.toString()}`;
+  const res = await omdFetch({ endpoint });
   const data = await res.json();
   return data;
 }
