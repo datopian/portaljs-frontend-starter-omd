@@ -70,9 +70,9 @@ DMS_TOKEN=<bot-token>
 
 7) Run `npm run dev` to start the development server
 
-8) Access `http://localhost:3000` in your browser
+8) Access `http://localhost:3000` in your browser (PortalJS portal)
 
-9) Set up a new Postgres database service for the dummy data. Navigate to Settings > Services > Database > Add New Service, choose Postgres, and use the following info:
+9) In OMD, set up a new Postgres database service for the dummy data. Navigate to Settings > Services > Database > Add New Service, choose Postgres, and use the following info:
 
 ```bash
 username: openmetadata_user
@@ -81,7 +81,7 @@ host and port: postgresql:5432
 database: postgres
 ```
 
-10) Once OMD has fetched the assets from the dummy data database, create Domains and Data Products to serve as your instances data
+10) Once OMD has fetched the assets from the dummy data database, create Domains and Data Products to serve as your instance data
 
 ## Customization
 
