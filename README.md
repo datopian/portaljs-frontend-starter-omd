@@ -1,4 +1,4 @@
-# PortalJS Frontend Starter
+# PortalJS OpenMetadata Frontend Starter
 
 <div align="center">
 
@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Next.js 13+](https://img.shields.io/badge/Next.js-13%2B-black?logo=next.js&logoColor=white)](https://nextjs.org/) [![GitHub Stars](https://img.shields.io/github/stars/datopian/portaljs?style=social)](https://github.com/datopian/portaljs/stargazers)
 
-**A modern, customizable frontend template for building high-performance CKAN-based data portals**
+**Adaptation of the [PortalJS Frontend Starter template](https://github.com/datopian/portaljs-frontend-starter) that works with Open Metadata**
 
 Powered by **[Next.js](https://nextjs.org)**, **[React](https://react.dev/)**, and **[Tailwind CSS](https://tailwindcss.com/)**
 
@@ -18,19 +18,27 @@ Powered by **[Next.js](https://nextjs.org)**, **[React](https://react.dev/)**, a
 
 ## Overview
 
-This is the official frontend template used by [PortalJS Cloud](https://cloud.portaljs.com) — a fully managed data portal service built on top of CKAN and Next.js.
+This template adapts the [PortalJS Frontend Starter template](https://github.com/datopian/portaljs-frontend-starter) so that it can be used with Open Metadata instead of CKAN.
 
-Use it to:
+> [!NOTE]
+> Currently, it serves mainly as a public PoC. Soon, we plan on moving this support to the main template.
 
-- Build decoupled CKAN frontends with modern tools (Next.js, React, TailwindCSS)
-- Customize dataset views, branding, and layouts
-- Deploy on Vercel, Netlify, Cloudflare Pages or your own infra
+Use it to build decoupled Open Metadata public frontends with modern tools (Next.js, React, TailwindCSS)
+
+## Important Notes
+
+- This template abstracts the OMD taxonomy into a CKAN-like taxonomy:
+  - OMD Data Products are mapped to PortalJS Datasets
+  - OMD Domains are mapped to PortalJS Organizations
+  - The PortalJS Groups and Visualizations concepts have been removed
+- Currently, only Table assets can be previewed (this can be extended)
+- The template will fetch all Data Products and Domains from your OMD instance unconditionally. Conditions can be added either via BOT authorization rules or by modifying the data fetching queries.
 
 ## ✨ Features
 
 - **Modern UI** - Clean, responsive design with Tailwind CSS
 - **High Performance** - Built on Next.js 13+ with SSR/SSG
-- **CKAN Integration** - Seamless data fetching via @portaljs/ckan
+- **Open Metadata Integration** - Seamless data fetching
 - **TypeScript** - Full type safety and better DX
 - **Easy Customizatio**n - Simple theme system and component styling
 - **Mobile-First** - Responsive design for all devices
@@ -38,44 +46,42 @@ Use it to:
 
 ## Getting started
 
-### Option 1: PortalJS Cloud
-
-PortalJS Cloud uses this template for creating new portals. If you want to quickly get started for free, follow the steps:
-
-1. **Sign up** at <https://cloud.portaljs.com>
-2. **Create portal** → PortalJS Cloud will auto-generate a GitHub repository for your portal (based on this template) and deploy it automatically
-3. Find the repo link in your PortalJS Cloud dashboard
-4. **Customize** your portal via pull requests — or let us take care of it by reaching out at portaljs@datopian.com
-
-### Option 2: Self-Hosted / Standalone
-
-> [!note]
-> In standalone mode, you are going to need your own dedicated CKAN instance.
-
-In order to use this repository in standalone mode (i.e. without PortalJS Cloud), click on the "Use this template" button on the top right corner to replicate this code to a new repo.
-
-Then, you can start customizing it locally by following the development instructions bellow, and/or deploy it somewhere such as on Vercel.
-
 ### Development
 
 1) Clone this repository
 
 2) Install the dependencies with `npm i`
 
-3) Create a new `.env` file with:
+3) Run `docker compose -f docker-compose-postgres.yml up` to start a local Open Metadata instance for development (NOTE: the local OMD instance comes with a Postgres database, which is automatically seeded with some dummy data)
+
+4) Navigate to `http://localhost:8585` and sign in to OMD with username `admin@open-metadata.org` and password `admin`.
+
+5) Create a new BOT for the frontend, and copy its access token
+
+6) Create a new `.env` file with:
 
 ```bash
-# This is the URL of the CKAN instance. Use the example value if you are using PortalJS Cloud.
-NEXT_PUBLIC_DMS=https://api.cloud.portaljs.com
+# This is the URL of the OMD instance. 
+NEXT_PUBLIC_DMS=http://localhost:8585
 
-# Leave it empty if you are not using PortalJS Cloud. This is the name of the main organization for your portal in PortalJS Cloud.
-# You can find the this value in the Organizations page in the PortalJS Cloud dashboard.
-NEXT_PUBLIC_ORG=my-org
+# This is the access token of the bot
+DMS_TOKEN=<bot-token>
 ```
 
-4) Run `npm run dev` to start the development server
+7) Run `npm run dev` to start the development server
 
-5) Access `http://localhost:3000` in your browser
+8) Access `http://localhost:3000` in your browser
+
+9) Set up a new Postgres database service for the dummy data. Navigate to Settings > Services > Database > Add New Service, choose Postgres, and use the following info:
+
+```bash
+username: openmetadata_user
+password: password
+host and port: postgresql:5432
+database: postgres
+```
+
+10) Once OMD has fetched the assets from the dummy data database, create Domains and Data Products to serve as your instances data
 
 ## Customization
 
@@ -164,24 +170,6 @@ const DefaultTheme = {
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **Data:** [CKAN API](https://docs.ckan.org/en/2.10/api/) via [@portaljs/ckan](https://www.npmjs.com/package/@portaljs/ckan)
 - **Deployment:** [Vercel](https://vercel.com/)
-
-## Deployment
-
-### Vercel (Recommended)
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdatopian%2Fportaljs-frontend-starter&env=NEXT_PUBLIC_DMS&envDescription=DMS%20endpoint%2C%20e.g.%2C%20a%20CKAN%20instance%20URL.%20For%20testing%20purposes%2C%20you%20can%20use%20https%3A%2F%2Fapi.cloud.portaljs.com%2F&project-name=my-portaljs-app&repository-name=my-portaljs-app)
-
-1. Push your repo to GitHub
-2. Connect it on [vercel.com](https://vercel.com/)
-3. Add environment variables
-4. Deploy! 🎉
-
-#### Other Platforms
-
-This template works on:
-- **Netlify** - Connect your GitHub repo
-- **Cloudflare Pages** - Import from Git
-- **Your server** - `npm run build && npm start`
 
 ## Contributing
 
